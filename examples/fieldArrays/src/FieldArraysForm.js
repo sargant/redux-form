@@ -1,5 +1,7 @@
 import React from 'react'
-import { Field, FieldArray, reduxForm } from 'redux-form'
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import { Field, FieldArray, reduxForm, change } from 'redux-form'
 import validate from './validate'
 
 const renderField = ({ input, label, type, meta: { touched, error } }) => (
@@ -63,12 +65,29 @@ const renderHobbies = ({ fields, meta: { error } }) => (
   </ul>
 )
 
+const setValueSetA = (changeHandler) => () =>
+  changeHandler('members', [
+    { firstName: 'Joe', lastName: 'Bloggs' },
+    { firstName: 'Jane', lastName: 'Doe' }
+  ])
+
+const setValueSetB = (changeHandler) => () =>
+  changeHandler('members', [
+    { firstName: 'Alice', lastName: 'Smiths' },
+    { firstName: 'Alex', lastName: 'Evans' },
+    { firstName: 'Joe', lastName: 'Jones' }
+  ])
+
 const FieldArraysForm = (props) => {
   const { handleSubmit, pristine, reset, submitting } = props
   return (
     <form onSubmit={handleSubmit}>
       <Field name="clubName" type="text" component={renderField} label="Club Name"/>
       <FieldArray name="members" component={renderMembers}/>
+      <div>
+        <button type="button" onClick={setValueSetA(props.change)}>Value set A</button>
+        <button type="button" onClick={setValueSetB(props.change)}>Value set B</button>
+      </div>
       <div>
         <button type="submit" disabled={submitting}>Submit</button>
         <button type="button" disabled={pristine || submitting} onClick={reset}>Clear Values</button>
@@ -77,7 +96,8 @@ const FieldArraysForm = (props) => {
   )
 }
 
-export default reduxForm({
-  form: 'fieldArrays',     // a unique identifier for this form
-  validate
-})(FieldArraysForm)
+const mapDispatchToProps = (dispatch) => ({
+  change: bindActionCreators(change, dispatch)
+})
+
+export default connect(undefined, mapDispatchToProps)(reduxForm({ form: 'fieldArrays', validate })(FieldArraysForm))
